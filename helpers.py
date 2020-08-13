@@ -1,6 +1,8 @@
 import numpy as np
-from bokeh.plotting import figure, show
+from bokeh.plotting import figure, output_file, show
 from bokeh.models import LinearAxis, Range1d
+import subprocess
+from progress import ProgressBar
 
 
 #########################################################
@@ -26,6 +28,12 @@ def write_arrays_to_file(arrays, file_name, delimiter=";"):
 # reading
 #########################################################
 
+# count lines in a file really fast
+# from: https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python
+def line_count(filename):
+    return int(subprocess.check_output(['wc', '-l', filename]).split()[0])
+
+
 # Helping method for reading, strings to float.
 # "," will be replaced with ".", and "" or "NAN" will be converted to zero.
 def str_to_float(s):
@@ -47,6 +55,9 @@ def str_to_float(s):
 #   2. A list of columns, containing the data from the columns
 # OBS: "," will be replaced with ".", and "" or "NAN" will be converted to zero.
 def read_PGHW_export(file_name, column_positions=[], delimiter=","):
+
+    pb = ProgressBar(line_count(file_name))
+    print("Reading file:")
     f = open(file_name, "r")
     while True:
         if f.readline().strip() == "Data:":
@@ -63,9 +74,12 @@ def read_PGHW_export(file_name, column_positions=[], delimiter=","):
         headers.append(all_headers[column_positions[i]])
 
     for line in f:
+        pb += 1
         s = line.split(delimiter)
         for i in range(0, len(columns)):
             columns[i].append(str_to_float(s[column_positions[i]]))
+
+    f.close()  # close file
 
     return headers, columns
 
@@ -91,8 +105,11 @@ def plot_1d(ys, title="1d plot"):
 
 
 # Plot up to 3 x,y coordinate sets in the same plot.
-def plot_2d(x_1, y_1, x_2=[], y_2=[], x_3=[], y_3=[], title="2d plot", legend_a="a", legend_b="b", legend_c="c", x_axis="x", y_axis="y"):
+def plot_2d(x_1, y_1, x_2=[], y_2=[], x_3=[], y_3=[], title="2d plot", legend_a="a", legend_b="b", legend_c="c", x_axis="x", y_axis="y", y_range=[]):
     p = figure(sizing_mode='stretch_both', title=title, x_axis_label=x_axis, y_axis_label=y_axis)
+    output_file(title + ".html")
+    if y_range:
+        p.y_range = Range1d(y_range[0], y_range[1])
 
     p.line(x_1, y_1, line_width=1, legend=legend_a, color="black")
     if len(x_2) > 0:
@@ -256,3 +273,10 @@ def cut_to_shortest_length(lists):
             min_length = len(arr)
     for arr in lists:
         arr[:] = arr[0:min_length]
+
+
+# round down number to the specified number of decimals
+# decimal must be a positive integer. Only makes logical sense with positive numbers
+def round_down(number, decimals=0):
+    factor = 10**decimals
+    return int(number*factor)/factor

@@ -1,8 +1,10 @@
 from helpers import *
 from progress import ProgressBar
 
+# example using some of the methods in helpers.py
+
 # read a pghw export file
-headers, columns = read_PGHW_export("T7202006180003.tsd.gpsimp.txt")
+headers, columns = read_PGHW_export("data/example_data/T7202006180003.tsd.gpsimp.txt")
 
 # do a moving average on all the data with length 3000 (and use progressbar)
 pb = ProgressBar(len(columns))
