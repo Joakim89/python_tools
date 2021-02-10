@@ -28,11 +28,6 @@ def write_arrays_to_file(arrays, file_name, delimiter=";"):
 # reading
 #########################################################
 
-# count lines in a file really fast
-# from: https://stackoverflow.com/questions/845058/how-to-get-line-count-of-a-large-file-cheaply-in-python
-def line_count(filename):
-    return int(subprocess.check_output(['wc', '-l', filename]).split()[0])
-
 
 # Helping method for reading, strings to float.
 # "," will be replaced with ".", and "" or "NAN" will be converted to zero.
@@ -55,9 +50,7 @@ def str_to_float(s):
 #   2. A list of columns, containing the data from the columns
 # OBS: "," will be replaced with ".", and "" or "NAN" will be converted to zero.
 def read_PGHW_export(file_name, column_positions=[], delimiter=","):
-
-    pb = ProgressBar(line_count(file_name))
-    print("Reading file:")
+    print("Reading file...")
     f = open(file_name, "r")
     while True:
         if f.readline().strip() == "Data:":
@@ -74,7 +67,6 @@ def read_PGHW_export(file_name, column_positions=[], delimiter=","):
         headers.append(all_headers[column_positions[i]])
 
     for line in f:
-        pb += 1
         s = line.split(delimiter)
         for i in range(0, len(columns)):
             columns[i].append(str_to_float(s[column_positions[i]]))
@@ -111,11 +103,11 @@ def plot_2d(x_1, y_1, x_2=[], y_2=[], x_3=[], y_3=[], title="2d plot", legend_a=
     if y_range:
         p.y_range = Range1d(y_range[0], y_range[1])
 
-    p.line(x_1, y_1, line_width=1, legend=legend_a, color="black")
+    p.line(x_1, y_1, line_width=1, legend_label=legend_a, color="black")
     if len(x_2) > 0:
-        p.line(x_2, y_2, line_width=1, legend=legend_b, color="red")
+        p.line(x_2, y_2, line_width=1, legend_label=legend_b, color="red")
     if len(x_3) > 0:
-        p.line(x_3, y_3, line_width=1, legend=legend_c, color="blue")
+        p.line(x_3, y_3, line_width=1, legend_label=legend_c, color="blue")
     show(p)
 
 
